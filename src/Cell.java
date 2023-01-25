@@ -38,6 +38,7 @@ public class Cell {
     }
 
     public void update() {
+        if (this.isAlive == this.nextLife) return;
         this.isAlive = this.nextLife;
         this.square.setFill(GameOfLife.getColor(this.isAlive));
     }

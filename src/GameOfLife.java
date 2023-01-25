@@ -1,15 +1,19 @@
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 
 public class GameOfLife extends Application {
     public static final byte CELLSIZE = 4;
-    public static final int GRIDWIDTH = 300;
+    public static final int GRIDWIDTH = 400;
     public static final int GRIDHEIGHT = 200;
     public static final Color ALIVE_COLOR = Color.WHITE;
     public static final Color DEAD_COLOR = Color.BLACK;
@@ -36,7 +40,9 @@ public class GameOfLife extends Application {
         stage.setTitle("Conway's Game of Life");
         stage.show();
 
-        scene.setOnScroll(event -> this.update());
+        Timeline continuousUpdate = new Timeline(new KeyFrame(Duration.millis(50), (ActionEvent event) -> this.update()));
+        continuousUpdate.setCycleCount(Timeline.INDEFINITE);
+        continuousUpdate.play();
     }
 
     private boolean randomBool() {
