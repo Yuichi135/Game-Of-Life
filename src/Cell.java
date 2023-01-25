@@ -1,3 +1,6 @@
+import javafx.scene.input.InputEvent;
+import javafx.scene.input.MouseDragEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Rectangle;
 
 public class Cell {
@@ -16,10 +19,22 @@ public class Cell {
 
         this.square.setFill(GameOfLife.getColor(this.isAlive));
 
-        this.square.setOnMouseDragEntered(event -> {
+        this.square.setOnMouseDragEntered(this::editCell);
+        this.square.setOnMouseClicked(this::editCell);
+    }
+
+    private void editCell(MouseEvent event) {
+        if (event.isPrimaryButtonDown()) {
+            if (this.nextLife)
+                return;
             this.revive();
             this.update();
-        });
+        } else if (event.isSecondaryButtonDown()) {
+            if (!this.nextLife)
+                return;
+            this.kill();
+            this.update();
+        }
     }
 
     public int getX() {

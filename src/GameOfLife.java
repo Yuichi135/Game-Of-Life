@@ -4,6 +4,7 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -13,9 +14,9 @@ import javafx.util.Duration;
 import java.util.ArrayList;
 
 public class GameOfLife extends Application {
-    public static final byte CELLSIZE = 4;
-    public static final int GRIDWIDTH = 400;
-    public static final int GRIDHEIGHT = 200;
+    public static final byte CELLSIZE = 8;
+    public static final int GRIDWIDTH = 200;
+    public static final int GRIDHEIGHT = 100;
     public static final Color ALIVE_COLOR = Color.WHITE;
     public static final Color DEAD_COLOR = Color.BLACK;
     private final ArrayList<ArrayList<Cell>> cells = new ArrayList<>();
@@ -28,7 +29,7 @@ public class GameOfLife extends Application {
 
             for (int y = 0; y < GRIDHEIGHT; y++) {
                 Rectangle square = new Rectangle(CELLSIZE, CELLSIZE);
-                cells.get(x).add(new Cell(x, y, this.randomBool(), square));
+                cells.get(x).add(new Cell(x, y, false, square));
 
                 gridPane.add(square, x, y);
             }
@@ -42,11 +43,12 @@ public class GameOfLife extends Application {
         stage.setTitle("Conway's Game of Life");
         stage.show();
 
-        Timeline continuousUpdate = new Timeline(new KeyFrame(Duration.millis(50), (ActionEvent event) -> this.update()));
+        Timeline continuousUpdate = new Timeline(new KeyFrame(Duration.millis(100), (ActionEvent event) -> this.update()));
         continuousUpdate.setCycleCount(Timeline.INDEFINITE);
         continuousUpdate.play();
 
         scene.setOnKeyReleased(event -> {
+            if (event.getCode() != KeyCode.SPACE) return;
             if (continuousUpdate.getStatus() == Animation.Status.STOPPED)
                 continuousUpdate.play();
             else
