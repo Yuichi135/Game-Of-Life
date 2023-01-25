@@ -1,3 +1,4 @@
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -22,7 +23,6 @@ public class GameOfLife extends Application {
     @Override
     public void start(Stage stage) {
         GridPane gridPane = new GridPane();
-
         for (int x = 0; x < GRIDWIDTH; x++) {
             cells.add(new ArrayList<>());
 
@@ -34,6 +34,8 @@ public class GameOfLife extends Application {
             }
         }
 
+        gridPane.setOnDragDetected(event -> gridPane.startFullDrag());
+
         Scene scene = new Scene(gridPane);
 
         stage.setScene(scene);
@@ -43,6 +45,13 @@ public class GameOfLife extends Application {
         Timeline continuousUpdate = new Timeline(new KeyFrame(Duration.millis(50), (ActionEvent event) -> this.update()));
         continuousUpdate.setCycleCount(Timeline.INDEFINITE);
         continuousUpdate.play();
+
+        scene.setOnKeyReleased(event -> {
+            if (continuousUpdate.getStatus() == Animation.Status.STOPPED)
+                continuousUpdate.play();
+            else
+                continuousUpdate.stop();
+        });
     }
 
     private boolean randomBool() {

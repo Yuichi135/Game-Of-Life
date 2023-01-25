@@ -15,6 +15,11 @@ public class Cell {
         this.square = square;
 
         this.square.setFill(GameOfLife.getColor(this.isAlive));
+
+        this.square.setOnMouseDragEntered(event -> {
+            this.revive();
+            this.update();
+        });
     }
 
     public int getX() {
