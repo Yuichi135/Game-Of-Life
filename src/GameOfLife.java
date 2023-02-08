@@ -11,6 +11,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -18,14 +19,17 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class GameOfLife extends Application {
-    private final int GRID_WIDTH = 800;
-    private final int GRID_HEIGHT = 400;
-    private final int TILE_SIZE = 1;
+    private final int GRID_WIDTH = 20;
+    private final int GRID_HEIGHT = 10;
+    private final int TILE_SIZE = 24;
+    private final int MENU_OFFSET = 25;
     private boolean[][] currentGrid;
     private boolean[][] nextGrid;
     private GraphicsContext graphicsContext;
@@ -37,9 +41,8 @@ public class GameOfLife extends Application {
 
         mainBox.setTop(this.createMenu());
         mainBox.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
-        ;
 
-        Scene scene = new Scene(mainBox, GRID_WIDTH * TILE_SIZE, GRID_HEIGHT * TILE_SIZE + 25, Color.BLACK);
+        Scene scene = new Scene(mainBox, GRID_WIDTH * TILE_SIZE, GRID_HEIGHT * TILE_SIZE + MENU_OFFSET, Color.BLACK);
         Canvas canvas = new Canvas(GRID_WIDTH * TILE_SIZE, GRID_HEIGHT * TILE_SIZE);
         this.graphicsContext = canvas.getGraphicsContext2D();
         this.graphicsContext.setFill(Color.WHITE);
@@ -69,6 +72,28 @@ public class GameOfLife extends Application {
             else
                 continuousUpdate.stop();
         });
+
+        scene.setOnMousePressed(this::editTile);
+        scene.setOnMouseDragged(this::editTile);
+    }
+
+    private void editTile(MouseEvent mouseEvent) {
+        int x = (int) Math.floor(mouseEvent.getX() / TILE_SIZE);
+        int y = (int) Math.floor((mouseEvent.getY() - 25) / TILE_SIZE);
+
+        Point point = new Point(x * TILE_SIZE, y * TILE_SIZE);
+
+        if (x >= GRID_WIDTH || x < 0 || y >= GRID_HEIGHT || y < 0) {
+            return;
+        }
+
+        if (mouseEvent.isPrimaryButtonDown()) {
+            this.currentGrid[x][y] = true;
+            this.drawTile(point);
+        } else if (mouseEvent.isSecondaryButtonDown()) {
+            this.currentGrid[x][y] = false;
+            this.clearTile(point);
+        }
     }
 
     private MenuBar createMenu() {
@@ -99,6 +124,7 @@ public class GameOfLife extends Application {
 
     private void reset() {
         this.initGrid();
+        this.draw();
     }
 
     private void save() {
@@ -132,6 +158,7 @@ public class GameOfLife extends Application {
                 }
                 x++;
             }
+            this.draw();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -206,11 +233,20 @@ public class GameOfLife extends Application {
         for (int i = 0; i < GRID_WIDTH; i++) {
             for (int j = 0; j < GRID_HEIGHT; j++) {
                 if (this.currentGrid[i][j])
-                    this.graphicsContext.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+                    this.drawTile(new Point(x, y));
                 y += TILE_SIZE;
             }
             x += TILE_SIZE;
             y = 0;
         }
+    }
+
+    private void drawTile(Point point) {
+        this.graphicsContext.fillRect(point.getX(), point.getY(), TILE_SIZE, TILE_SIZE);
+    }
+
+    private void clearTile(Point point) {
+        // Needs 1px offset?
+        this.graphicsContext.clearRect(point.getX() + 1, point.getY() + 1, TILE_SIZE - 1, TILE_SIZE - 1);
     }
 }
