@@ -2,32 +2,51 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 public class GameOfLife extends Application {
     private final int GRID_WIDTH = 800;
     private final int GRID_HEIGHT = 400;
-    private final int TILE_SIZE = 2;
+    private final int TILE_SIZE = 1;
     private boolean[][] currentGrid;
     private boolean[][] nextGrid;
     private GraphicsContext graphicsContext;
 
     @Override
     public void start(Stage stage) throws Exception {
+        BorderPane mainBox = new BorderPane();
         Group root = new Group();
-        Scene scene = new Scene(root, GRID_WIDTH * TILE_SIZE, GRID_HEIGHT * TILE_SIZE, Color.BLACK);
+
+        mainBox.setTop(this.createMenu());
+        mainBox.setBackground(new Background(new BackgroundFill(Color.web("#000000"), CornerRadii.EMPTY, Insets.EMPTY)));
+        ;
+
+        Scene scene = new Scene(mainBox, GRID_WIDTH * TILE_SIZE, GRID_HEIGHT * TILE_SIZE + 25, Color.BLACK);
         Canvas canvas = new Canvas(GRID_WIDTH * TILE_SIZE, GRID_HEIGHT * TILE_SIZE);
         this.graphicsContext = canvas.getGraphicsContext2D();
         this.graphicsContext.setFill(Color.WHITE);
 
         root.getChildren().add(canvas);
+        mainBox.setCenter(root);
+
         stage.setScene(scene);
         stage.setTitle("Conway's Game of Life");
         stage.setResizable(false);
@@ -50,6 +69,72 @@ public class GameOfLife extends Application {
             else
                 continuousUpdate.stop();
         });
+    }
+
+    private MenuBar createMenu() {
+        MenuBar menuBar = new MenuBar();
+        Menu menu = new Menu("Settings");
+
+        MenuItem clear = new MenuItem("Clear");
+        MenuItem reset = new MenuItem("Reset");
+        MenuItem save = new MenuItem("Save");
+        MenuItem load = new MenuItem("Load");
+
+        menu.getItems().addAll(clear, reset, save, load);
+        menuBar.getMenus().add(menu);
+
+
+        clear.setOnAction(event -> this.clear());
+        reset.setOnAction(event -> this.reset());
+        save.setOnAction(event -> this.save());
+        load.setOnAction(event -> this.load());
+
+        return menuBar;
+    }
+
+    private void clear() {
+        this.currentGrid = this.createEmptyGrid();
+        this.draw();
+    }
+
+    private void reset() {
+        this.initGrid();
+    }
+
+    private void save() {
+        try (PrintWriter printWriter = new PrintWriter("saveFile.txt")) {
+            printWriter.println(this.gridToString(this.currentGrid));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String gridToString(boolean[][] grid) {
+        StringBuilder stringBuilder = new StringBuilder(GRID_WIDTH * GRID_HEIGHT);
+        for (int x = 0; x < GRID_WIDTH; x++) {
+            for (int y = 0; y < GRID_HEIGHT; y++) {
+                stringBuilder.append((grid[x][y]) ? 1 : 0);
+            }
+            stringBuilder.append("\n");
+        }
+        return stringBuilder.toString();
+    }
+
+    private void load() {
+        File file = new File("saveFile.txt");
+        try (Scanner scanner = new Scanner(file)) {
+            int x = 0;
+            while (scanner.hasNext()) {
+                char[] row = scanner.nextLine().toCharArray();
+
+                for (int y = 0; y < row.length; y++) {
+                    this.currentGrid[x][y] = row[y] == '1';
+                }
+                x++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void initGrid() {
@@ -77,6 +162,7 @@ public class GameOfLife extends Application {
     private boolean randomBool() {
         return Math.random() > 0.5;
     }
+
     private int getNeighbours(int x, int y) {
         int neighbours = 0;
         for (int i = -1; i <= 1; i++) {
@@ -95,7 +181,6 @@ public class GameOfLife extends Application {
     private void clearCanvas() {
         this.graphicsContext.clearRect(0, 0, GRID_WIDTH * TILE_SIZE, GRID_HEIGHT * TILE_SIZE);
     }
-
 
     private void update() {
         this.nextGrid = this.createEmptyGrid();
