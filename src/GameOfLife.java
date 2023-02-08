@@ -14,8 +14,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -23,12 +21,11 @@ import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 public class GameOfLife extends Application {
-    private final int GRID_WIDTH = 20;
-    private final int GRID_HEIGHT = 10;
-    private final int TILE_SIZE = 24;
+    private final int GRID_WIDTH = 800;
+    private final int GRID_HEIGHT = 400;
+    private final int TILE_SIZE = 2;
     private final int MENU_OFFSET = 25;
     private boolean[][] currentGrid;
     private boolean[][] nextGrid;
@@ -247,6 +244,6 @@ public class GameOfLife extends Application {
 
     private void clearTile(Point point) {
         // Needs 1px offset?
-        this.graphicsContext.clearRect(point.getX() + 1, point.getY() + 1, TILE_SIZE - 1, TILE_SIZE - 1);
+        this.graphicsContext.clearRect(point.getX() + 1, point.getY() + 1, (TILE_SIZE == 1) ? 1 : TILE_SIZE - 1, (TILE_SIZE == 1) ? 1 : TILE_SIZE - 1);
     }
 }
