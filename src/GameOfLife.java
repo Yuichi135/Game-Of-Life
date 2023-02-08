@@ -12,6 +12,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -23,13 +24,16 @@ import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class GameOfLife extends Application {
-    private final int GRID_WIDTH = 800;
-    private final int GRID_HEIGHT = 400;
-    private final int TILE_SIZE = 2;
+    private final int GRID_WIDTH = 400;
+    private final int GRID_HEIGHT = 200;
+    private final int TILE_SIZE = 4;
     private final int MENU_OFFSET = 25;
     private boolean[][] currentGrid;
     private boolean[][] nextGrid;
     private GraphicsContext graphicsContext;
+    private double zoom = 1;
+    private Point startMousePosition = new Point();
+    private Point offSet = new Point();
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -70,8 +74,51 @@ public class GameOfLife extends Application {
                 continuousUpdate.stop();
         });
 
-        scene.setOnMousePressed(this::editTile);
-        scene.setOnMouseDragged(this::editTile);
+        scene.setOnMousePressed(this::pressAction);
+        scene.setOnMouseDragged(this::dragAction);
+        scene.setOnScroll(this::zoom);
+    }
+
+    private void zoom(ScrollEvent scrollEvent) {
+        if (scrollEvent.getDeltaY() > 0.0) {
+            if (this.zoom < 0)
+                return;
+            this.zoom -= 0.05;
+            this.graphicsContext.scale(1.1, 1.1);
+        } else {
+            if (this.zoom >= 1)
+                return;
+            this.zoom += 0.05;
+            this.graphicsContext.scale(1 / 1.1, 1 / 1.1);
+        }
+
+        this.draw();
+    }
+
+    private void pressAction(MouseEvent mouseEvent) {
+        if (!mouseEvent.isShiftDown()) {
+            this.editTile(mouseEvent);
+        } else {
+            this.startMousePosition.move(this.snapDoubleToGrid(this.offSet.getX() + mouseEvent.getX()),
+                    this.snapDoubleToGrid(this.offSet.getY() + mouseEvent.getY()));
+            System.out.println(this.startMousePosition);
+        }
+    }
+
+    private void dragAction(MouseEvent mouseEvent) {
+        if (!mouseEvent.isShiftDown()) {
+            this.editTile(mouseEvent);
+        } else {
+            this.moveScreen(mouseEvent);
+        }
+    }
+
+    private void moveScreen(MouseEvent mouseEvent) {
+        this.offSet.move(this.snapDoubleToGrid((startMousePosition.getX() - mouseEvent.getX())),
+                this.snapDoubleToGrid((startMousePosition.getY() - mouseEvent.getY())));
+
+        this.offSet.setLocation(this.offSet.getX() % (GRID_WIDTH * TILE_SIZE), this.offSet.getY() % (GRID_HEIGHT * TILE_SIZE));
+        this.draw();
     }
 
     private void editTile(MouseEvent mouseEvent) {
@@ -91,6 +138,10 @@ public class GameOfLife extends Application {
             this.currentGrid[x][y] = false;
             this.clearTile(point);
         }
+    }
+
+    private int snapDoubleToGrid(double value) {
+        return (int) (Math.floor(value / TILE_SIZE) * TILE_SIZE);
     }
 
     private MenuBar createMenu() {
@@ -239,11 +290,14 @@ public class GameOfLife extends Application {
     }
 
     private void drawTile(Point point) {
-        this.graphicsContext.fillRect(point.getX(), point.getY(), TILE_SIZE, TILE_SIZE);
+        point.setLocation(this.snapDoubleToGrid(point.getX()), this.snapDoubleToGrid(point.getY()));
+        this.graphicsContext.fillRect((point.getX() - this.offSet.getX() + (GRID_WIDTH * TILE_SIZE)) % (GRID_WIDTH * TILE_SIZE),
+                (point.getY() - this.offSet.getY() + (GRID_HEIGHT * TILE_SIZE)) % (GRID_HEIGHT * TILE_SIZE), TILE_SIZE, TILE_SIZE);
     }
 
     private void clearTile(Point point) {
         // Needs 1px offset?
+        point.setLocation(this.snapDoubleToGrid(point.getX()), this.snapDoubleToGrid(point.getY()));
         this.graphicsContext.clearRect(point.getX() + 1, point.getY() + 1, (TILE_SIZE == 1) ? 1 : TILE_SIZE - 1, (TILE_SIZE == 1) ? 1 : TILE_SIZE - 1);
     }
 }
