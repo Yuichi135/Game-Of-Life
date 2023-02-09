@@ -101,7 +101,6 @@ public class GameOfLife extends Application {
         } else {
             this.startMousePosition.move(this.snapDoubleToGrid(this.offSet.getX() + mouseEvent.getX()),
                     this.snapDoubleToGrid(this.offSet.getY() + mouseEvent.getY()));
-            System.out.println(this.startMousePosition);
         }
     }
 
@@ -122,8 +121,8 @@ public class GameOfLife extends Application {
     }
 
     private void editTile(MouseEvent mouseEvent) {
-        int x = (int) Math.floor(mouseEvent.getX() / TILE_SIZE);
-        int y = (int) Math.floor((mouseEvent.getY() - 25) / TILE_SIZE);
+        int x = (int) Math.floor((mouseEvent.getX() + this.offSet.getX()) / TILE_SIZE);
+        int y = (int) Math.floor(((mouseEvent.getY() + this.offSet.getY()) - 25) / TILE_SIZE);
 
         Point point = new Point(x * TILE_SIZE, y * TILE_SIZE);
 
