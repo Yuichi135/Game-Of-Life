@@ -24,9 +24,9 @@ import java.io.PrintWriter;
 import java.util.Scanner;
 
 public class GameOfLife extends Application {
-    private final int GRID_WIDTH = 400;
-    private final int GRID_HEIGHT = 200;
-    private final int TILE_SIZE = 4;
+    private final int GRID_WIDTH = 100;
+    private final int GRID_HEIGHT = 50;
+    private final int TILE_SIZE = 8;
     private final int MENU_OFFSET = 25;
     private boolean[][] currentGrid;
     private boolean[][] nextGrid;
@@ -81,16 +81,18 @@ public class GameOfLife extends Application {
 
     private void zoom(ScrollEvent scrollEvent) {
         if (scrollEvent.getDeltaY() > 0.0) {
-            if (this.zoom < 0)
+            if (this.zoom > 4)
                 return;
-            this.zoom -= 0.05;
+            this.zoom *= 1.1;
             this.graphicsContext.scale(1.1, 1.1);
         } else {
-            if (this.zoom >= 1)
+            if (this.zoom < 0.5)
                 return;
-            this.zoom += 0.05;
+            this.zoom *= 1/1.1;
             this.graphicsContext.scale(1 / 1.1, 1 / 1.1);
         }
+
+//        System.out.println(this.zoom);
 
         this.draw();
     }
@@ -124,7 +126,12 @@ public class GameOfLife extends Application {
         int x = (int) Math.floor((mouseEvent.getX() + this.offSet.getX()) / TILE_SIZE);
         int y = (int) Math.floor(((mouseEvent.getY() + this.offSet.getY()) - 25) / TILE_SIZE);
 
+        x = (x + GRID_WIDTH) % GRID_WIDTH;
+        y = (y + GRID_HEIGHT) % GRID_HEIGHT;
+
         Point point = new Point(x * TILE_SIZE, y * TILE_SIZE);
+
+        System.out.println(point);
 
         if (x >= GRID_WIDTH || x < 0 || y >= GRID_HEIGHT || y < 0) {
             return;
